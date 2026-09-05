@@ -913,6 +913,461 @@ const SIEBTRAEGER_TREES = {
   },
 };
 
+/* ---------- Baum-Generatoren für die übrigen Zubereitungsarten ----------
+   Gleiches Muster wie beim Siebträger (eine Frage pro Screen, ein Vorschlag,
+   Alternative erst wenn's weiter besteht), aber mit Fragen/Schwellwerten,
+   die zur jeweiligen Methode passen. Die Aktionstexte kommen wo möglich aus
+   DIM (actionFor), damit sie mit dem Legacy-Fallback konsistent bleiben.
+------------------------------------------------------------------------- */
+
+function genSauerTree(methodId, cfg){
+  return {
+    start:'q1',
+    nodes:{
+      q1:{type:'question', text:cfg.speedQ, options:[
+        {emoji:cfg.speedOptions[0].emoji, label:cfg.speedOptions[0].label, next:'under'},
+        {emoji:cfg.speedOptions[1].emoji, label:cfg.speedOptions[1].label, next:'q2_roast'},
+        {emoji:cfg.speedOptions[2].emoji, label:cfg.speedOptions[2].label, next:'over_q'},
+        {emoji:'🤷', label:'Weiß ich nicht', next:'LEGACY'},
+      ]},
+      under:{type:'result', icon:'🔧', label:'Wahrscheinlich unterextrahiert',
+        note:'Der Kaffee hatte zu wenig Zeit bzw. Kontakt mit dem Wasser, um genügend Aromastoffe abzugeben.',
+        actions:[actionFor('grind_finer', methodId)], next:'under_2'},
+      under_2:{type:'result', icon:'⚖️', label:'Alternative: Dosierung prüfen',
+        actions:['Prüfe, ob genug Kaffeepulver im Verhältnis zur Wassermenge verwendet wurde.'], next:null},
+      q2_roast:{type:'question', note:'Hier würden wir nicht sofort behaupten, dass etwas falsch eingestellt ist.', text:'Welche Röstung verwendest du?', options:[
+        {emoji:'🌕', label:'Hell', next:'roast_hell'},
+        {emoji:'🟤', label:'Mittel', next:'roast_mitteldunkel'},
+        {emoji:'⚫', label:'Dunkel', next:'roast_mitteldunkel'},
+        {emoji:'🤷', label:'Weiß ich nicht', next:'roast_mitteldunkel'},
+      ]},
+      roast_hell:{type:'result', icon:'🌕', label:'Normale Fruchtigkeit heller Röstungen',
+        note:'Eine leichte Fruchtigkeit und Säure kann bei hellen Kaffees völlig normal und gewünscht sein. Falls sie dir trotzdem unangenehm ist:',
+        actions:[actionFor('temp_higher', methodId)], next:'roast_hell_2'},
+      roast_hell_2:{type:'result', icon:'⏱️', label:'Alternative: länger extrahieren',
+        actions:[actionFor('time_longer', methodId)], next:null},
+      roast_mitteldunkel:{type:'result', icon:'🔧', label:'Leicht unterextrahiert',
+        actions:[actionFor('grind_finer', methodId)], next:'roast_mitteldunkel_2'},
+      roast_mitteldunkel_2:{type:'result', icon:'🌡️', label:'Alternative: Temperatur erhöhen',
+        actions:[actionFor('temp_higher', methodId)], next:null},
+      over_q:{type:'question', note:'Säure bei so langer Zeit lässt sich nicht pauschal mit „feiner mahlen“ lösen.', text:cfg.unevenQ, options:[
+        {emoji:'💦', label:'Ja', next:'uneven'},
+        {emoji:'🙅', label:'Nein', next:'over_no_uneven'},
+        {emoji:'🤷', label:'Weiß ich nicht', next:'over_no_uneven'},
+      ]},
+      uneven:{type:'result', icon:'💦', label:cfg.unevenResultLabel,
+        note:cfg.unevenNote,
+        actions:[cfg.unevenAction], next:null},
+      over_no_uneven:{type:'result', icon:'🌡️', label:'Temperatur zu niedrig',
+        actions:[actionFor('temp_higher', methodId)],
+        tip:{text:'Bei einer sehr hellen Röstung kann etwas Säure trotz langer Zeit normal sein.'}, next:null},
+    }
+  };
+}
+
+function genBitterTree(methodId, cfg){
+  return {
+    start:'q1',
+    nodes:{
+      q1:{type:'question', text:cfg.speedQ, options:[
+        {emoji:cfg.speedOptions[0].emoji, label:cfg.speedOptions[0].label, next:'under'},
+        {emoji:cfg.speedOptions[1].emoji, label:cfg.speedOptions[1].label, next:'q2_roast'},
+        {emoji:cfg.speedOptions[2].emoji, label:cfg.speedOptions[2].label, next:'over'},
+        {emoji:'🤷', label:'Weiß ich nicht', next:'LEGACY'},
+      ]},
+      over:{type:'result', icon:'🔧', label:'Wahrscheinlich überextrahiert',
+        actions:[actionFor('grind_coarser', methodId)], next:'over_2'},
+      over_2:{type:'result', icon:'⏱️', label:'Alternative: Zeit verkürzen',
+        actions:[actionFor('time_shorter', methodId)], next:null},
+      under:{type:'result', icon:'⚖️', label:'Ungewöhnlich kurz für Bitterkeit',
+        note:'Bitterkeit bei so kurzer Zeit liegt seltener am Mahlgrad.',
+        actions:['Kaffeemenge und Verteilung prüfen.'], next:'under_2'},
+      under_2:{type:'result', icon:'🔧', label:'Alternative: Mahlgrad anpassen',
+        actions:[actionFor('grind_coarser', methodId)], next:null},
+      q2_roast:{type:'question', text:'Welche Röstung verwendest du?', options:[
+        {emoji:'⚫', label:'Sehr dunkel', next:'roast_dunkel'},
+        {emoji:'🟤', label:'Mittel', next:'roast_mittel'},
+        {emoji:'🌕', label:'Hell', next:'roast_hell'},
+        {emoji:'🤷', label:'Weiß ich nicht', next:'roast_mittel'},
+      ]},
+      roast_dunkel:{type:'result', icon:'⚫', label:'Röstbedingte Bitterkeit',
+        note:'Eine dunkle Röstung kann von Natur aus kräftige, bittere und röstige Noten haben.',
+        actions:[actionFor('temp_lower', methodId)], next:'roast_dunkel_2'},
+      roast_dunkel_2:{type:'result', icon:'⏱️', label:'Alternative: kürzer extrahieren',
+        actions:[actionFor('time_shorter', methodId)],
+        tip:{text:'Wenn dir das dauerhaft zu bitter ist, passt evtl. eine hellere Röstung besser zu deinem Geschmack.', linkHref:FINDER_URL, linkLabel:'Passende Kaffees entdecken →'}, next:null},
+      roast_mittel:{type:'result', icon:'🔧', label:'Leicht überextrahiert',
+        actions:[actionFor('grind_coarser', methodId)], next:'roast_mittel_2'},
+      roast_mittel_2:{type:'result', icon:'🌡️', label:'Alternative: Temperatur senken',
+        actions:[actionFor('temp_lower', methodId)], next:null},
+      roast_hell:{type:'result', icon:'🔧', label:'Ungewöhnlich für helle Röstung',
+        note:'Bitterkeit ist bei hellen Röstungen selten – meist steckt Überextraktion oder Technik dahinter.',
+        actions:[actionFor('grind_coarser', methodId)], next:'roast_hell_2'},
+      roast_hell_2:{type:'result', icon:'🎯', label:'Alternative: Technik prüfen',
+        actions:[cfg.unevenAction], next:null},
+    }
+  };
+}
+
+function genDuennTree(methodId, cfg){
+  return {
+    start:'q1',
+    nodes:{
+      q1:{type:'question', text:'Wie sieht dein Kaffee aus?', options:[
+        {emoji:'🟤', label:'Sehr hell / dünn vom ersten Eindruck', next:'thin_look'},
+        {emoji:'☕', label:'Farblich normal, aber geschmacklich dünn', next:'q2_ratio'},
+        {emoji:'🤷', label:'Weiß ich nicht', next:'LEGACY'},
+      ]},
+      thin_look:{type:'result', icon:'🔧', label:'Wahrscheinlich unterextrahiert',
+        actions:[actionFor('grind_finer', methodId)], next:null},
+      q2_ratio:{type:'question', text:cfg.sizeQ, options:[
+        {emoji:cfg.sizeOptions[0].emoji, label:cfg.sizeOptions[0].label, next:'ratio_large'},
+        {emoji:cfg.sizeOptions[1].emoji, label:cfg.sizeOptions[1].label, next:'ratio_normal'},
+        {emoji:'🤷', label:'Weiß ich nicht', next:'ratio_normal'},
+      ]},
+      ratio_large:{type:'result', icon:'💧', label:'Zu viel Wasser im Verhältnis',
+        note:'Vermutlich wird zu viel Wasser durch das gleiche Kaffeepulver geleitet.',
+        actions:[actionFor('water_less', methodId)], next:null},
+      ratio_normal:{type:'result', icon:'⚖️', label:'Rezept prüfen',
+        actions:[actionFor('dose_more', methodId)], next:'ratio_normal_2'},
+      ratio_normal_2:{type:'result', icon:'🔧', label:'Alternative: Mahlgrad anpassen',
+        actions:[actionFor('grind_finer', methodId)], next:null},
+    }
+  };
+}
+
+function genStarkTree(methodId){
+  return {
+    start:'q1',
+    nodes:{
+      q1:{type:'question', note:'Stark ist nicht automatisch bitter – lass uns das genauer eingrenzen.', text:'Was meinst du mit „zu stark“?', options:[
+        {emoji:'😵', label:'Zu intensiv', next:'intensiv'},
+        {emoji:'😖', label:'Zu bitter', next:'redirect:bitter'},
+        {emoji:'💥', label:'Zu konzentriert', next:'konzentriert'},
+      ]},
+      intensiv:{type:'result', icon:'⚖️', label:'Zu intensiv im Geschmack',
+        actions:[actionFor('dose_less', methodId)], next:'intensiv_2'},
+      intensiv_2:{type:'result', icon:'🫘', label:'Alternative: mildere Bohne',
+        actions:['Eine mildere Bohne wählen.'], next:null},
+      konzentriert:{type:'result', icon:'💥', label:'Zu konzentriert',
+        actions:[actionFor('water_more', methodId)], next:null},
+    }
+  };
+}
+
+function genVerbranntTree(methodId, cfg){
+  const nodes = {
+    q1:{type:'question', note:'Das liegt nicht immer an deiner Einstellung.', text:'Ist der Kaffee sehr dunkel geröstet?', options:[
+      {emoji:'⚫', label:'Ja', next:'dunkel'},
+      {emoji:'🙅', label:'Nein', next:'nicht_dunkel'},
+      {emoji:'🤷', label:'Weiß ich nicht', next:'nicht_dunkel'},
+    ]},
+    dunkel:{type:'result', icon:'⚫', label:'Wahrscheinlich röstbedingt',
+      note:'Eine sehr dunkle Röstung kann starke Röstaromen, Rauchigkeit und Bitterkeit entwickeln.',
+      actions:[actionFor('temp_lower', methodId)], next:'dunkel_2'},
+    dunkel_2:{type:'result', icon:'⏱️', label:'Alternative: kürzer extrahieren',
+      actions:[actionFor('time_shorter', methodId)],
+      tip:{text:'Wenn das nicht hilft, passt eventuell eine hellere oder mittlere Röstung besser zu deinem Geschmack.', linkHref:FINDER_URL, linkLabel:'Passende Kaffees entdecken →'}, next:null},
+    nicht_dunkel:{type:'result', icon:'🌡️', label:'Zu heiß extrahiert',
+      actions:[actionFor('temp_lower', methodId)], next:'nicht_dunkel_2'},
+    nicht_dunkel_2:{type:'result', icon:'⏱️', label:'Alternative: kürzer extrahieren',
+      actions:[actionFor('time_shorter', methodId)], next: cfg.burntExtra ? 'nicht_dunkel_3' : null},
+  };
+  if (cfg.burntExtra){
+    nodes.nicht_dunkel_3 = {type:'result', icon:'⏲️', label:'Alternative: Warmhaltezeit prüfen',
+      actions:[actionFor(cfg.burntExtra, methodId)], next:null};
+  }
+  return {start:'q1', nodes};
+}
+
+function genLangweiligTree(methodId){
+  return {
+    start:'q1',
+    nodes:{
+      q1:{type:'question', text:'Ist dein Kaffee ...', options:[
+        {emoji:'💧', label:'Dünn und wässrig?', next:'redirect:duenn'},
+        {emoji:'😐', label:'Vollmundig, aber wenig interessant?', next:'q2_age'},
+      ]},
+      q2_age:{type:'question', text:'Wie alt sind deine Bohnen ungefähr?', options:[
+        {emoji:'🌱', label:'Unter 2 Wochen', next:'frisch'},
+        {emoji:'📅', label:'2–6 Wochen', next:'frisch'},
+        {emoji:'🍂', label:'Mehrere Monate', next:'alt'},
+        {emoji:'🤷', label:'Weiß ich nicht', next:'frisch'},
+      ]},
+      alt:{type:'result', icon:'📅', label:'Kaffee nicht mehr frisch',
+        note:'Kaffee verliert mit der Zeit Aromakomplexität.',
+        actions:[actionFor('freshness', methodId)],
+        tip:{text:'Am besten kurz vor der Zubereitung frisch mahlen und den Kaffee innerhalb weniger Wochen nach der Röstung verbrauchen.', linkHref:FINDER_URL, linkLabel:'Frisch geröstete Kaffees entdecken →'}, next:null},
+      frisch:{type:'result', icon:'🔧', label:'Rezept oder Kaffeeprofil',
+        note:'Deine Bohnen sind noch frisch genug – wahrscheinlich passt eher das Rezept oder das Kaffeeprofil nicht zu deinem Geschmack.',
+        actions:[actionFor('grind_finer', methodId)], next:'frisch_2'},
+      frisch_2:{type:'result', icon:'⚖️', label:'Alternative: mehr Kaffeepulver',
+        actions:[actionFor('dose_more', methodId)],
+        tip:{text:'Manche Kaffeeprofile sind einfach zurückhaltender im Geschmack – ein anderer Kaffee kann hier mehr bringen.', linkHref:FINDER_URL, linkLabel:'Anderen Kaffee entdecken →'}, next:null},
+    }
+  };
+}
+
+function genKomischTree(methodId){
+  return {
+    start:'q1',
+    nodes:{
+      q1:{type:'question', text:'Wie fühlt sich der Geschmack an?', options:[
+        {emoji:'🍋', label:'Spitz / stechend', next:'redirect:sauer'},
+        {emoji:'🪵', label:'Trocken / pelzig', next:'redirect:bitter'},
+        {emoji:'💧', label:'Leer / wenig Geschmack', next:'redirect:duenn'},
+        {emoji:'🔥', label:'Rauchig / aschig', next:'redirect:verbrannt'},
+        {emoji:'😐', label:'Einfach uninteressant', next:'redirect:langweilig'},
+        {emoji:'🧴', label:'Seifig / nach Reinigungsmittel', next:'cleaning'},
+      ]},
+      cleaning:{type:'result', icon:'🧽', label:'Maschine oder Zubehör reinigen',
+        actions:[actionFor('cleaning', methodId)], next:'cleaning_2'},
+      cleaning_2:{type:'result', icon:'🚰', label:'Alternative: Wasserqualität',
+        actions:[actionFor('water_quality', methodId)], next:null},
+    }
+  };
+}
+
+/* ---------- Vollständige Bäume je Zubereitungsart ---------- */
+
+const METHOD_TREES = {
+
+  siebtraeger: SIEBTRAEGER_TREES,
+
+  vollautomat: (()=>{ const cfg = {
+    speedQ:'Wie läuft dein Kaffee aus der Maschine?',
+    speedOptions:[
+      {emoji:'⚡', label:'Sehr schnell, dünner Strahl'},
+      {emoji:'⏱️', label:'Normal'},
+      {emoji:'🐌', label:'Sehr langsam, fast wie Sirup'},
+    ],
+    unevenQ:'Spritzt der Kaffee beim Bezug oder läuft er ungleichmäßig aus dem Auslauf?',
+    unevenResultLabel:'Wahrscheinlich Channeling in der Brühgruppe',
+    unevenNote:'Auch im Vollautomaten kann sich das Wasser ungleichmäßig durchs Kaffeemehl in der Brühgruppe drängen.',
+    unevenAction:'Brühgruppe gründlich reinigen – Kaffeefett und Rückstände begünstigen ungleichmäßiges Durchlaufen.',
+    sizeQ:'Welche Getränkegröße hast du gewählt?',
+    sizeOptions:[{emoji:'🥤', label:'Große Tasse / Lungo-Taste'}, {emoji:'☕', label:'Espresso / kleine Tasse'}],
+    burntExtra:null,
+  }; return {
+    sauer: genSauerTree('vollautomat', cfg),
+    bitter: genBitterTree('vollautomat', cfg),
+    duenn: genDuennTree('vollautomat', cfg),
+    stark: genStarkTree('vollautomat'),
+    verbrannt: genVerbranntTree('vollautomat', cfg),
+    langweilig: genLangweiligTree('vollautomat'),
+    komisch: genKomischTree('vollautomat'),
+  };})(),
+
+  handfilter: (()=>{ const cfg = {
+    speedQ:'Wie lange dauert dein gesamter Brühvorgang (erster Aufguss bis letzter Tropfen)?',
+    speedOptions:[
+      {emoji:'⚡', label:'Sehr schnell – unter ca. 2:00 Min.'},
+      {emoji:'⏱️', label:'Normal – ca. 2:30–3:30 Min.'},
+      {emoji:'🐌', label:'Langsam – über ca. 4:00 Min.'},
+    ],
+    unevenQ:'Läuft das Wasser irgendwo am Rand schnell durch, statt gleichmäßig durchs Kaffeebett zu sickern?',
+    unevenResultLabel:'Wahrscheinlich ungleichmäßiger Durchlauf',
+    unevenNote:'Läuft das Wasser an einer Stelle bevorzugt durch, wird der Rest des Kaffeebetts nicht richtig ausgespült.',
+    unevenAction:'In engen, langsamen Kreisen von innen nach außen aufgießen und das Kaffeebett dabei möglichst gleichmäßig halten.',
+    sizeQ:'Hast du mehr Wasser aufgegossen als im Rezept vorgesehen?',
+    sizeOptions:[{emoji:'💧', label:'Ja, eher großzügig'}, {emoji:'⚖️', label:'Nein, nach Rezept'}],
+    burntExtra:null,
+  }; return {
+    sauer: genSauerTree('handfilter', cfg),
+    bitter: genBitterTree('handfilter', cfg),
+    duenn: genDuennTree('handfilter', cfg),
+    stark: genStarkTree('handfilter'),
+    verbrannt: genVerbranntTree('handfilter', cfg),
+    langweilig: genLangweiligTree('handfilter'),
+    komisch: genKomischTree('handfilter'),
+  };})(),
+
+  frenchpress: (()=>{ const cfg = {
+    speedQ:'Wie lange lässt du den Kaffee ziehen, bevor du drückst?',
+    speedOptions:[
+      {emoji:'⚡', label:'Kurz – unter 3 Minuten'},
+      {emoji:'⏱️', label:'Normal – ca. 4 Minuten'},
+      {emoji:'🐌', label:'Lang – über 5 Minuten'},
+    ],
+    unevenQ:'Hast du direkt nach dem Aufgießen kurz umgerührt, damit sich das Kaffeepulver gleichmäßig verteilt?',
+    unevenResultLabel:'Wahrscheinlich ungleichmäßig gezogen',
+    unevenNote:'Ohne Umrühren schwimmt ein Teil des Kaffeepulvers oben und zieht ungleichmäßig.',
+    unevenAction:'Direkt nach dem Aufgießen einmal kurz umrühren, damit sich das Kaffeepulver gleichmäßig verteilt und absetzt.',
+    sizeQ:'Hast du mehr Wasser verwendet als im Rezept vorgesehen?',
+    sizeOptions:[{emoji:'💧', label:'Ja, eher großzügig'}, {emoji:'⚖️', label:'Nein, nach Rezept'}],
+    burntExtra:null,
+  }; return {
+    sauer: genSauerTree('frenchpress', cfg),
+    bitter: genBitterTree('frenchpress', cfg),
+    duenn: genDuennTree('frenchpress', cfg),
+    stark: genStarkTree('frenchpress'),
+    verbrannt: genVerbranntTree('frenchpress', cfg),
+    langweilig: genLangweiligTree('frenchpress'),
+    komisch: genKomischTree('frenchpress'),
+  };})(),
+
+  filtermaschine: (()=>{ const cfg = {
+    speedQ:'Wie beurteilst du die Durchlaufzeit deiner Maschine?',
+    speedOptions:[
+      {emoji:'⚡', label:'Sehr schnell durchgelaufen'},
+      {emoji:'⏱️', label:'Normal'},
+      {emoji:'🐌', label:'Sehr langsam / tropft nur noch'},
+    ],
+    unevenQ:'Liegt der Filter gleichmäßig im Halter, oder könnte Wasser an einer Stelle vorbeigelaufen sein?',
+    unevenResultLabel:'Wahrscheinlich ungleichmäßig durchgelaufen',
+    unevenNote:'Ein schief eingelegter Filter oder Kaffeemehl an der Filterwand lässt Wasser ungleichmäßig durchlaufen.',
+    unevenAction:'Filter mittig einlegen und Kaffeemehl gleichmäßig verteilen, bevor das Wasser durchläuft.',
+    sizeQ:'Hast du mehr Wasser eingefüllt, als die Kaffeepulver-Menge vorsieht?',
+    sizeOptions:[{emoji:'💧', label:'Ja, eher großzügig'}, {emoji:'⚖️', label:'Nein, nach Rezept'}],
+    burntExtra:'heat_plate',
+  }; return {
+    sauer: genSauerTree('filtermaschine', cfg),
+    bitter: genBitterTree('filtermaschine', cfg),
+    duenn: genDuennTree('filtermaschine', cfg),
+    stark: genStarkTree('filtermaschine'),
+    verbrannt: genVerbranntTree('filtermaschine', cfg),
+    langweilig: genLangweiligTree('filtermaschine'),
+    komisch: genKomischTree('filtermaschine'),
+  };})(),
+
+  aeropress: (()=>{ const cfg = {
+    speedQ:'Wie lange lässt du den Kaffee ziehen, bevor du drückst?',
+    speedOptions:[
+      {emoji:'⚡', label:'Kurz – unter 1 Minute'},
+      {emoji:'⏱️', label:'Normal – ca. 1–2 Minuten'},
+      {emoji:'🐌', label:'Lang – über 2:30 Minuten'},
+    ],
+    unevenQ:'Hast du beim Aufgießen umgerührt?',
+    unevenResultLabel:'Wahrscheinlich ungleichmäßig gezogen',
+    unevenNote:'Ohne Umrühren zieht der Kaffee oben im Wasser ungleichmäßig.',
+    unevenAction:'Nach dem Aufgießen kurz umrühren, bevor der Stempel aufgesetzt wird.',
+    sizeQ:'Hast du mehr Wasser verwendet als im Rezept vorgesehen?',
+    sizeOptions:[{emoji:'💧', label:'Ja, eher großzügig'}, {emoji:'⚖️', label:'Nein, nach Rezept'}],
+    burntExtra:null,
+  }; return {
+    sauer: genSauerTree('aeropress', cfg),
+    bitter: genBitterTree('aeropress', cfg),
+    duenn: genDuennTree('aeropress', cfg),
+    stark: genStarkTree('aeropress'),
+    verbrannt: genVerbranntTree('aeropress', cfg),
+    langweilig: genLangweiligTree('aeropress'),
+    komisch: genKomischTree('aeropress'),
+  };})(),
+
+  chemex: (()=>{ const cfg = {
+    speedQ:'Wie lange dauert dein gesamter Brühvorgang?',
+    speedOptions:[
+      {emoji:'⚡', label:'Sehr schnell – unter ca. 3:00 Min.'},
+      {emoji:'⏱️', label:'Normal – ca. 3:30–4:30 Min.'},
+      {emoji:'🐌', label:'Langsam – über ca. 5:00 Min.'},
+    ],
+    unevenQ:'Läuft das Wasser irgendwo am Rand schnell durch, statt gleichmäßig durchs Kaffeebett zu sickern?',
+    unevenResultLabel:'Wahrscheinlich ungleichmäßiger Durchlauf',
+    unevenNote:'Läuft das Wasser an einer Stelle bevorzugt durch, wird der Rest des Kaffeebetts nicht richtig ausgespült.',
+    unevenAction:'In engen, langsamen Kreisen von innen nach außen aufgießen und das Kaffeebett dabei möglichst gleichmäßig halten.',
+    sizeQ:'Hast du mehr Wasser aufgegossen als im Rezept vorgesehen?',
+    sizeOptions:[{emoji:'💧', label:'Ja, eher großzügig'}, {emoji:'⚖️', label:'Nein, nach Rezept'}],
+    burntExtra:null,
+  }; return {
+    sauer: genSauerTree('chemex', cfg),
+    bitter: genBitterTree('chemex', cfg),
+    duenn: genDuennTree('chemex', cfg),
+    stark: genStarkTree('chemex'),
+    verbrannt: genVerbranntTree('chemex', cfg),
+    langweilig: genLangweiligTree('chemex'),
+    komisch: genKomischTree('chemex'),
+  };})(),
+
+  mokka: {
+    sauer: {
+      start:'q1',
+      nodes:{
+        q1:{type:'question', text:'Mit welchem Wasser hast du den Unterkessel befüllt?', options:[
+          {emoji:'🧊', label:'Kaltes Wasser', next:'cold_water'},
+          {emoji:'♨️', label:'Bereits heißes Wasser', next:'q2_heat'},
+          {emoji:'🤷', label:'Weiß ich nicht', next:'LEGACY'},
+        ]},
+        cold_water:{type:'result', icon:'🌡️', label:'Zu lange bis zum Kochen',
+          note:'Kaltes Wasser braucht lange zum Kochen – dabei können sich unerwünschte Säure und Aromen entwickeln.',
+          actions:[actionFor('temp_higher', 'mokka')], next:'cold_water_2'},
+        cold_water_2:{type:'result', icon:'🔥', label:'Alternative: Herdstufe erhöhen',
+          actions:['Mittlere statt niedrige Herdstufe verwenden, damit die Kanne zügig durchläuft.'], next:null},
+        q2_heat:{type:'question', text:'Bei welcher Herdstufe brühst du?', options:[
+          {emoji:'🔉', label:'Niedrig', next:'low_heat'},
+          {emoji:'🔊', label:'Mittel oder hoch', next:'normal_heat'},
+          {emoji:'🤷', label:'Weiß ich nicht', next:'normal_heat'},
+        ]},
+        low_heat:{type:'result', icon:'🔥', label:'Zu langsamer Durchlauf',
+          actions:['Etwas höhere Herdstufe wählen, damit der Kaffee zügiger durchläuft.'], next:null},
+        normal_heat:{type:'result', icon:'🔧', label:'Mahlgrad prüfen',
+          note:'Bei bereits heißem Wasser und normaler Hitze liegt Säure meist am Mahlgrad oder an einer hellen Röstung.',
+          actions:[actionFor('grind_finer', 'mokka')], next:'normal_heat_2'},
+        normal_heat_2:{type:'result', icon:'🌕', label:'Alternative: Röstung/Timing prüfen',
+          actions:['Kanne pünktlich vom Herd nehmen, sobald es zu blubbern beginnt – bei heller Röstung kann etwas Säure normal sein.'], next:null},
+      }
+    },
+    bitter: {
+      start:'q1',
+      nodes:{
+        q1:{type:'question', text:'Wann nimmst du die Kanne vom Herd?', options:[
+          {emoji:'⏳', label:'Erst wenn sie länger faucht/zischt', next:'late'},
+          {emoji:'✅', label:'Direkt wenn der Kaffee durchgelaufen ist', next:'q2_roast'},
+          {emoji:'🤷', label:'Weiß ich nicht', next:'LEGACY'},
+        ]},
+        late:{type:'result', icon:'🔧', label:'Wahrscheinlich überextrahiert',
+          note:'Faucht die Kanne länger, zieht sie Luft und Dampf durch den bereits durchgelaufenen Kaffee – das macht ihn bitter.',
+          actions:[actionFor('time_shorter', 'mokka')], next:'late_2'},
+        late_2:{type:'result', icon:'🔧', label:'Alternative: Mahlgrad anpassen',
+          actions:[actionFor('grind_coarser', 'mokka')], next:null},
+        q2_roast:{type:'question', text:'Welche Röstung verwendest du?', options:[
+          {emoji:'⚫', label:'Dunkel', next:'roast_dunkel'},
+          {emoji:'🟤', label:'Mittel', next:'roast_mittel'},
+          {emoji:'🌕', label:'Hell', next:'roast_mittel'},
+          {emoji:'🤷', label:'Weiß ich nicht', next:'roast_mittel'},
+        ]},
+        roast_dunkel:{type:'result', icon:'⚫', label:'Röstbedingte Bitterkeit',
+          note:'Eine dunkle Röstung kann von Natur aus kräftige, bittere und röstige Noten haben.',
+          actions:[actionFor('temp_lower', 'mokka')],
+          tip:{text:'Wenn dir das dauerhaft zu bitter ist, passt evtl. eine hellere Röstung besser zu deinem Geschmack.', linkHref:FINDER_URL, linkLabel:'Passende Kaffees entdecken →'}, next:'roast_dunkel_2'},
+        roast_dunkel_2:{type:'result', icon:'🔧', label:'Alternative: Mahlgrad anpassen',
+          actions:[actionFor('grind_coarser', 'mokka')], next:null},
+        roast_mittel:{type:'result', icon:'🔧', label:'Leicht überextrahiert',
+          actions:[actionFor('grind_coarser', 'mokka')], next:'roast_mittel_2'},
+        roast_mittel_2:{type:'result', icon:'🌡️', label:'Alternative: Herdstufe senken',
+          actions:[actionFor('temp_lower', 'mokka')], next:null},
+      }
+    },
+    duenn: genDuennTree('mokka', {
+      sizeQ:'Hast du den Unterkessel bis knapp unters Sicherheitsventil befüllt?',
+      sizeOptions:[{emoji:'💧', label:'Nein, deutlich weniger'}, {emoji:'⚖️', label:'Ja, wie vorgesehen'}],
+    }),
+    stark: genStarkTree('mokka'),
+    verbrannt: {
+      start:'q1',
+      nodes:{
+        q1:{type:'question', note:'Die Mokkakanne brüht sehr heiß und schnell – da verzeiht sie wenig.', text:'Bist du sofort beim ersten kräftigen Blubbern/Zischen vom Herd gegangen?', options:[
+          {emoji:'⏳', label:'Nein, sie stand noch etwas', next:'late'},
+          {emoji:'✅', label:'Ja, sofort', next:'stillburnt'},
+          {emoji:'🤷', label:'Weiß ich nicht', next:'late'},
+        ]},
+        late:{type:'result', icon:'🔥', label:'Zu lange auf dem Herd',
+          note:'Bleibt die Kanne zu lange auf der Platte, verbrennt der bereits durchgelaufene Kaffee.',
+          actions:['Kanne beim ersten kräftigen Blubbern/Zischen sofort vom Herd nehmen und den Deckel öffnen.'], next:'late_2'},
+        late_2:{type:'result', icon:'🌡️', label:'Alternative: Herdstufe senken',
+          actions:[actionFor('temp_lower', 'mokka')], next:null},
+        stillburnt:{type:'result', icon:'🌡️', label:'Zu hohe Herdstufe oder sehr dunkle Röstung',
+          note:'Das kann auch an zu hoher Hitze oder einer sehr dunklen Röstung liegen.',
+          actions:[actionFor('temp_lower', 'mokka')], next:'stillburnt_2'},
+        stillburnt_2:{type:'result', icon:'🌕', label:'Alternative: hellere Röstung testen',
+          actions:['Etwas hellere Röstung testen.'],
+          tip:{text:'Sehr dunkel geröstete Kaffees verbrennen in der Mokkakanne schneller.', linkHref:FINDER_URL, linkLabel:'Passende Kaffees entdecken →'}, next:null},
+      }
+    },
+    langweilig: genLangweiligTree('mokka'),
+    komisch: genKomischTree('mokka'),
+  },
+};
+
 /* ---------- State ---------- */
 
 let state = {
@@ -1022,7 +1477,8 @@ function renderMethodScreen(){
       state.methodId = btn.dataset.method;
       state.screen='diagnosis';
       state.history=[];
-      const tree = state.methodId==='siebtraeger' ? SIEBTRAEGER_TREES[state.problemId] : null;
+      const methodTrees = METHOD_TREES[state.methodId];
+      const tree = methodTrees ? methodTrees[state.problemId] : null;
       if (tree){
         state.mode='tree';
         state.nodeId=tree.start;
@@ -1130,7 +1586,7 @@ function advanceTree(next){
   if (next.indexOf('redirect:')===0){
     const target = next.split(':')[1];
     state.problemId = target;
-    state.nodeId = SIEBTRAEGER_TREES[target].start;
+    state.nodeId = METHOD_TREES[state.methodId][target].start;
     render();
     return;
   }
@@ -1141,7 +1597,7 @@ function advanceTree(next){
 function renderTreeDiagnosis(){
   const problem = PROBLEMS.find(p=>p.id===state.problemId);
   const method = METHODS.find(m=>m.id===state.methodId);
-  const tree = SIEBTRAEGER_TREES[state.problemId];
+  const tree = METHOD_TREES[state.methodId][state.problemId];
   const node = tree.nodes[state.nodeId];
   if (node.type==='question') renderQuestionNode(problem, method, node);
   else renderResultNode(problem, method, node);
