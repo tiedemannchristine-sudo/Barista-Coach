@@ -1,4 +1,4 @@
-const CACHE_NAME = 'barista-coach-v3';
+const CACHE_NAME = 'barista-coach-v4';
 const ASSETS = [
   './index.html',
   './manifest.json',
