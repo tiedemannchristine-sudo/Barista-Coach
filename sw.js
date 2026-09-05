@@ -1,8 +1,11 @@
-const CACHE_NAME = 'barista-coach-v2';
+const CACHE_NAME = 'barista-coach-v3';
 const ASSETS = [
   './index.html',
   './manifest.json',
-  './icon.svg'
+  './icon-192.png',
+  './icon-512.png',
+  './icon-180.png',
+  './favicon-32.png'
 ];
 
 self.addEventListener('install', (event) => {
