@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F2E9DC">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Barista Coach">
+<title>Barista Coach – LeNoKo</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F2E9DC;
+    --surface:#FCF7EE;
+    --surface-raised:#FFFFFF;
+    --ink:#2B1D12;
+    --ink-soft:#7A6A57;
+    --ink-faint:#B3A48F;
+    --accent:#C08A3E;
+    --accent-dark:#8C5F22;
+    --accent-wash:#EFD9AF;
+    --good:#4B5D3A;
+    --good-wash:#DFE6D5;
+    --warn:#A6432F;
+    --warn-wash:#F0D8CF;
+    --line: rgba(43,29,18,0.12);
+    --shadow: 0 12px 28px rgba(43,29,18,0.10);
+    --radius-l: 22px;
+    --radius-m: 16px;
+    --radius-pill: 999px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(120% 90% at 15% -10%, #FBF2E1 0%, transparent 55%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    display:flex;
+    justify-content:center;
+  }
+  #app{
+    width:100%;
+    max-width:480px;
+    min-height:100vh;
+    padding:28px 20px 110px;
+    position:relative;
+  }
+  h1,h2,h3{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    line-height:1.18;
+    margin:0;
+  }
+  p{margin:0;}
+  .eyebrow-none{ } /* intentionally no all-caps eyebrows used anywhere */
+
+  header.top{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:22px;
+  }
+  .bean-progress{
+    display:flex;
+    gap:6px;
+    margin-left:auto;
+  }
+  .bean-progress span{
+    width:9px;height:9px;border-radius:50%;
+    background:var(--ink-faint);
+    transition:background .35s ease, transform .35s ease;
+  }
+  .bean-progress span.active{
+    background:var(--accent);
+    transform:scale(1.25);
+  }
+  .brand{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+  }
+  .brand .mark{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:19px;
+  }
+  .brand .sub{
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+
+  .screen{
+    animation: rise .45s cubic-bezier(.22,.68,.35,1);
+  }
+  @keyframes rise{
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .screen{animation:none;}
+  }
+
+  .headline{
+    font-size:26px;
+    margin-bottom:8px;
+  }
+  .lede{
+    color:var(--ink-soft);
+    font-size:15px;
+    line-height:1.55;
+    margin-bottom:26px;
+  }
+
+  .card-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .pick-card{
+    background:var(--surface-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius-l);
+    padding:16px 14px;
+    text-align:left;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+    transition:transform .15s ease, border-color .15s ease;
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+  }
+  .pick-card:active{transform:scale(.97);}
+  .pick-card:hover{border-color:var(--accent);}
+  .pick-card .emoji{
+    font-size:26px;
+    display:block;
+    margin-bottom:10px;
+  }
+  .pick-card .title{
+    font-weight:600;
+    font-size:15px;
+    display:block;
+    margin-bottom:3px;
+  }
+  .pick-card .desc{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    line-height:1.4;
+    display:block;
+  }
+  .pick-card.wide{
+    grid-column:1 / -1;
+  }
+
+  .method-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  .method-card{
+    background:var(--surface-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius-l);
+    padding:20px 12px;
+    text-align:center;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+    transition:transform .15s ease, border-color .15s ease;
+  }
+  .method-card:active{transform:scale(.96);}
+  .method-card .emoji{font-size:28px; display:block; margin-bottom:8px;}
+  .method-card .title{font-weight:600; font-size:13.5px;}
+
+  .option-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom:10px;
+  }
+  .option-btn{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    width:100%;
+    background:var(--surface-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius-m);
+    padding:14px 16px;
+    text-align:left;
+    cursor:pointer;
+    box-shadow:var(--shadow);
+    font-family:'Inter',sans-serif;
+    font-size:14.5px;
+    color:var(--ink);
+    transition:transform .12s ease, border-color .12s ease;
+  }
+  .option-btn:active{transform:scale(.97);}
+  .option-btn:hover{border-color:var(--accent);}
+  .option-btn .oe{font-size:19px; flex-shrink:0; width:24px; text-align:center;}
+  .question-note{
+    color:var(--ink-soft);
+    font-size:13.5px;
+    line-height:1.5;
+    margin-bottom:14px;
+  }
+  .step-count{
+    font-size:12.5px;
+    color:var(--ink-faint);
+    margin-bottom:8px;
+  }
+  .tip-box a{color:var(--accent-dark); font-weight:600; text-decoration:none; border-bottom:1px solid var(--accent);}
+
+  .back-link{
+    background:none;border:none;
+    color:var(--ink-soft);
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    display:flex;align-items:center;gap:6px;
+    cursor:pointer;
+    padding:6px 0 20px;
+  }
+  .back-link:hover{color:var(--ink);}
+
+  .diag-context{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:var(--surface-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius-pill);
+    padding:6px 12px;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-bottom:16px;
+  }
+
+  .cause-panel{
+    background:var(--surface-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius-l);
+    padding:22px 20px;
+    box-shadow:var(--shadow);
+    margin-bottom:18px;
+  }
+  .cause-panel .step-label{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-bottom:6px;
+  }
+  .cause-panel .cause-title{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:20px;
+    margin-bottom:14px;
+  }
+  .cause-panel .cause-title .ic{font-size:24px;}
+  .action-box{
+    background:var(--accent-wash);
+    border-radius:var(--radius-m);
+    padding:14px 16px;
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    margin-bottom:6px;
+  }
+  .action-box .arrow{color:var(--accent-dark); font-weight:700; font-size:15px;}
+  .action-box p{
+    font-size:15px;
+    line-height:1.5;
+    color:var(--ink);
+  }
+  .hint-note{
+    font-size:12.5px;
+    color:var(--ink-soft);
+    margin-top:12px;
+    line-height:1.5;
+  }
+
+  .other-causes{
+    font-size:13px;
+    color:var(--ink-faint);
+    margin-bottom:22px;
+    line-height:1.6;
+  }
+  .other-causes b{color:var(--ink-soft); font-weight:600;}
+
+  .decision-row{
+    display:flex;
+    gap:10px;
+    margin-bottom:8px;
+  }
+  .btn{
+    border:none;
+    border-radius:var(--radius-pill);
+    padding:15px 18px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:14.5px;
+    cursor:pointer;
+    flex:1;
+    transition:transform .12s ease, opacity .12s ease;
+  }
+  .btn:active{transform:scale(.96);}
+  .btn-good{
+    background:var(--good);
+    color:#F4F5EE;
+  }
+  .btn-again{
+    background:var(--surface);
+    color:var(--ink);
+    border:1px solid var(--line);
+  }
+
+  .tip-box{
+    display:flex;
+    gap:10px;
+    background:var(--good-wash);
+    border-radius:var(--radius-m);
+    padding:13px 15px;
+    margin-top:8px;
+    margin-bottom:8px;
+  }
+  .tip-box p{font-size:13px; line-height:1.5; color:var(--ink);}
+
+  .result-panel{
+    background:var(--surface-raised);
+    border-radius:var(--radius-l);
+    box-shadow:var(--shadow);
+    padding:30px 22px;
+    text-align:center;
+    margin-bottom:18px;
+  }
+  .result-panel .big-emoji{font-size:44px; display:block; margin-bottom:14px;}
+  .result-panel h2{font-size:22px; margin-bottom:8px;}
+  .result-panel p{color:var(--ink-soft); font-size:14.5px; line-height:1.55;}
+
+  .restart-btn{
+    width:100%;
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    border-radius:var(--radius-pill);
+    padding:16px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:15px;
+    cursor:pointer;
+    margin-top:6px;
+  }
+  .restart-btn:active{transform:scale(.97);}
+
+  footer.finder{
+    margin-top:34px;
+    padding-top:20px;
+    border-top:1px solid var(--line);
+    text-align:center;
+  }
+  footer.finder p{
+    font-size:13px;
+    color:var(--ink-soft);
+    line-height:1.55;
+    margin-bottom:10px;
+  }
+  footer.finder a{
+    display:inline-block;
+    color:var(--accent-dark);
+    font-weight:600;
+    font-size:13.5px;
+    text-decoration:none;
+    border-bottom:1px solid var(--accent);
+    padding-bottom:1px;
+  }
+
+  /* Floating quick-help button */
+  .fab{
+    position:fixed;
+    bottom:24px;
+    left:50%;
+    transform:translateX(-50%);
+    max-width:440px;
+    width:calc(100% - 40px);
+    background:var(--ink);
+    color:#F5EEE1;
+    border:none;
+    border-radius:var(--radius-pill);
+    padding:15px 18px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:9px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:14.5px;
+    cursor:pointer;
+    box-shadow:0 14px 30px rgba(43,29,18,0.28);
+    z-index:20;
+  }
+  .fab:active{transform:translateX(-50%) scale(.97);}
+
+  .sheet-backdrop{
+    position:fixed; inset:0;
+    background:rgba(43,29,18,0.45);
+    z-index:30;
+    display:flex;
+    align-items:flex-end;
+    justify-content:center;
+    animation:fade .2s ease;
+  }
+  @keyframes fade{from{opacity:0;}to{opacity:1;}}
+  .sheet{
+    background:var(--bg);
+    width:100%;
+    max-width:480px;
+    border-radius:26px 26px 0 0;
+    padding:22px 20px 30px;
+    max-height:82vh;
+    overflow-y:auto;
+    animation:slideUp .3s cubic-bezier(.22,.68,.35,1);
+  }
+  @keyframes slideUp{from{transform:translateY(30px); opacity:0;}to{transform:translateY(0); opacity:1;}}
+  .sheet-handle{
+    width:38px;height:4px;border-radius:2px;
+    background:var(--ink-faint);
+    margin:0 auto 16px;
+  }
+  .sheet h2{font-size:19px; margin-bottom:4px;}
+  .sheet .sheet-sub{color:var(--ink-soft); font-size:13px; margin-bottom:18px;}
+  .quick-row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .quick-row:last-of-type{border-bottom:none;}
+  .quick-row .qe{font-size:20px; width:26px; text-align:center; flex-shrink:0;}
+  .quick-row .qwhat{
+    font-weight:600;
+    font-size:13.5px;
+    width:78px;
+    flex-shrink:0;
+  }
+  .quick-row .qfix{
+    font-size:13.5px;
+    color:var(--ink-soft);
+  }
+  .sheet-close{
+    width:100%;
+    background:var(--surface-raised);
+    border:1px solid var(--line);
+    border-radius:var(--radius-pill);
+    padding:14px;
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    color:var(--ink);
+    margin-top:18px;
+    cursor:pointer;
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ---------- Daten ---------- */
+
+const PROBLEMS = [
+  {id:'sauer', emoji:'😖', title:'Zu sauer', desc:'spitz, unangenehm, zitronig'},
+  {id:'bitter', emoji:'😵', title:'Zu bitter', desc:'herb, kratzig, unangenehm'},
+  {id:'duenn', emoji:'💧', title:'Zu dünn', desc:'wässrig, wenig Geschmack'},
+  {id:'stark', emoji:'🪵', title:'Zu stark', desc:'zu intensiv, zu schwer'},
+  {id:'verbrannt', emoji:'🔥', title:'Verbrannt', desc:'rauchig, aschig'},
+  {id:'langweilig', emoji:'😐', title:'Langweilig', desc:'fad, wenig Aroma'},
+  {id:'komisch', emoji:'🤯', title:'Irgendwie komisch', desc:'Ich weiß nicht genau, was falsch ist', wide:true},
+];
+
+const METHODS = [
+  {id:'siebtraeger', emoji:'☕', title:'Siebträger'},
+  {id:'vollautomat', emoji:'🤖', title:'Kaffeevollautomat'},
+  {id:'handfilter', emoji:'🫗', title:'Handfilter / V60'},
+  {id:'frenchpress', emoji:'📰', title:'French Press'},
+  {id:'mokka', emoji:'🔥', title:'Mokkakanne'},
+  {id:'filtermaschine', emoji:'☕', title:'Filterkaffeemaschine'},
+  {id:'aeropress', emoji:'🧪', title:'Aeropress'},
+  {id:'chemex', emoji:'⏳', title:'Chemex'},
+];
+
+// Textbausteine je nach Zubereitungsmethode
+const DIM = {
+  grind_finer: {
+    siebtraeger:'Mahlgrad etwas feiner einstellen.',
+    vollautomat:'Mahlgradregler eine Stufe feiner stellen.',
+    handfilter:'Mahlgrad etwas feiner einstellen.',
+    frenchpress:'Etwas feiner mahlen – aber weiterhin grob.',
+    mokka:'Etwas feiner mahlen (aber nicht so fein wie Espresso).',
+    filtermaschine:'Mahlgrad eine Stufe feiner einstellen.',
+    aeropress:'Mahlgrad etwas feiner einstellen.',
+    chemex:'Mahlgrad etwas feiner einstellen (aber gröber als beim Handfilter).'
+  },
+  grind_coarser: {
+    siebtraeger:'Mahlgrad etwas gröber einstellen.',
+    vollautomat:'Mahlgradregler eine Stufe gröber stellen.',
+    handfilter:'Mahlgrad etwas gröber einstellen.',
+    frenchpress:'Etwas gröber mahlen.',
+    mokka:'Etwas gröber mahlen.',
+    filtermaschine:'Mahlgrad eine Stufe gröber einstellen.',
+    aeropress:'Mahlgrad etwas gröber einstellen.',
+    chemex:'Mahlgrad etwas gröber einstellen.'
+  },
+  time_longer: {
+    siebtraeger:'Bezugszeit verlängern – etwas länger extrahieren lassen.',
+    vollautomat:'Falls einstellbar: Brühzeit bzw. Kaffeestärke im Menü erhöhen.',
+    handfilter:'Langsamer aufgießen, damit die Gesamtzeit länger wird.',
+    frenchpress:'Ziehzeit auf 4–5 Minuten verlängern.',
+    mokka:'Bei etwas niedrigerer Hitze länger durchlaufen lassen.',
+    filtermaschine:'Falls einstellbar: Brühprogramm mit längerer Kontaktzeit wählen.',
+    aeropress:'Ziehzeit vor dem Pressen verlängern (z. B. 30 Sekunden mehr).',
+    chemex:'Langsamer aufgießen, damit die Gesamtzeit länger wird.'
+  },
+  time_shorter: {
+    siebtraeger:'Bezugszeit verkürzen – Extraktion früher stoppen.',
+    vollautomat:'Falls einstellbar: Kaffeestärke im Menü reduzieren.',
+    handfilter:'Etwas schneller aufgießen, damit die Gesamtzeit kürzer wird.',
+    frenchpress:'Ziehzeit auf 3 Minuten verkürzen.',
+    mokka:'Kanne früher von der Hitze nehmen, sobald der Kaffee durchgelaufen ist.',
+    filtermaschine:'Kaffee direkt nach dem Durchlaufen servieren, nicht nachziehen lassen.',
+    aeropress:'Ziehzeit vor dem Pressen verkürzen.',
+    chemex:'Etwas schneller aufgießen, damit die Gesamtzeit kürzer wird.'
+  },
+  temp_higher: {
+    siebtraeger:'Brühtemperatur an der Maschine leicht erhöhen.',
+    vollautomat:'Falls einstellbar: Brühtemperatur im Menü höher wählen.',
+    handfilter:'Wasser heißer aufgießen (ca. 96–98 °C).',
+    frenchpress:'Wasser heißer aufgießen (ca. 96–98 °C).',
+    mokka:'Mit bereits heißem statt kaltem Wasser starten.',
+    filtermaschine:'Prüfen, ob die Maschine ausreichend heißes Wasser liefert (evtl. entkalken).',
+    aeropress:'Wasser heißer aufgießen (ca. 85–90 °C).',
+    chemex:'Wasser heißer aufgießen (ca. 96–98 °C).'
+  },
+  temp_lower: {
+    siebtraeger:'Brühtemperatur an der Maschine leicht senken.',
+    vollautomat:'Falls einstellbar: Brühtemperatur im Menü niedriger wählen.',
+    handfilter:'Wasser etwas abkühlen lassen, bevor du aufgießt (ca. 92–94 °C).',
+    frenchpress:'Wasser etwas abkühlen lassen, bevor du aufgießt.',
+    mokka:'Bei niedrigerer Herdhitze brühen, nicht auf voller Stufe.',
+    filtermaschine:'Kaffee nicht zu lange auf der Warmhalteplatte stehen lassen.',
+    aeropress:'Wasser etwas abkühlen lassen, bevor du aufgießt.',
+    chemex:'Wasser etwas abkühlen lassen, bevor du aufgießt (ca. 92–94 °C).'
+  },
+  dose_more: {
+    default:'Etwas mehr Kaffeepulver verwenden.'
+  },
+  dose_less: {
+    default:'Etwas weniger Kaffeepulver verwenden.'
+  },
+  water_less: {
+    siebtraeger:'Ausbeute reduzieren – weniger Wasser im Verhältnis zum Pulver.',
+    vollautomat:'Falls einstellbar: Wassermenge pro Tasse reduzieren.',
+    handfilter:'Etwas weniger Wasser aufgießen.',
+    frenchpress:'Etwas weniger Wasser verwenden.',
+    mokka:'Unterkessel nicht ganz bis zum Sicherheitsventil befüllen.',
+    filtermaschine:'Etwas weniger Wasser einfüllen.',
+    aeropress:'Etwas weniger Wasser verwenden bzw. stärker aufbrühen und mit weniger Wasser verdünnen.',
+    chemex:'Etwas weniger Wasser aufgießen.'
+  },
+  water_more: {
+    siebtraeger:'Ausbeute erhöhen – etwas mehr Wasser im Verhältnis zum Pulver.',
+    vollautomat:'Falls einstellbar: Wassermenge pro Tasse erhöhen.',
+    handfilter:'Etwas mehr Wasser aufgießen.',
+    frenchpress:'Etwas mehr Wasser verwenden.',
+    mokka:'Unterkessel etwas voller befüllen (bis knapp unters Ventil).',
+    filtermaschine:'Etwas mehr Wasser einfüllen.',
+    aeropress:'Etwas mehr Wasser verwenden bzw. mit mehr Wasser verdünnen.',
+    chemex:'Etwas mehr Wasser aufgießen.'
+  },
+  heat_plate: {
+    default:'Kaffee direkt nach der Zubereitung trinken statt lange warmzuhalten.'
+  },
+  cleaning: {
+    default:'Zubereiter bzw. Maschine gründlich reinigen oder entkalken.'
+  },
+  water_quality: {
+    default:'Gefiltertes oder stilles Wasser statt Leitungswasser probieren.'
+  },
+  freshness: {
+    default:'Frisch gemahlenen, kürzlich gerösteten Kaffee verwenden.'
+  },
+  roast_note: {
+    default:'Das liegt oft am Röstgrad selbst, nicht an deiner Zubereitung.'
+  },
+  storage: {
+    default:'Kaffee luftdicht, dunkel und kühl lagern – nicht im Kühlschrank.'
+  }
+};
+
+function actionFor(dim, methodId){
+  const entry = DIM[dim];
+  if (!entry) return '';
+  return entry[methodId] || entry.default || '';
+}
+
+const CAUSES = {
+  sauer: {
+    causes:[
+      {icon:'🔧', label:'Mahlgrad zu grob', dim:'grind_finer'},
+      {icon:'⏱️', label:'Brühzeit zu kurz', dim:'time_longer'},
+      {icon:'🌡️', label:'Temperatur zu niedrig', dim:'temp_higher'},
+    ],
+    tip:null
+  },
+  bitter: {
+    causes:[
+      {icon:'🔧', label:'Mahlgrad zu fein', dim:'grind_coarser'},
+      {icon:'⏱️', label:'Brühzeit zu lang', dim:'time_shorter'},
+      {icon:'🌡️', label:'Temperatur zu hoch', dim:'temp_lower'},
+    ],
+    tip:null
+  },
+  duenn: {
+    causes:[
+      {icon:'⚖️', label:'Zu wenig Kaffeepulver', dim:'dose_more'},
+      {icon:'🔧', label:'Mahlgrad zu grob', dim:'grind_finer'},
+      {icon:'💧', label:'Zu viel Wasser im Verhältnis', dim:'water_less'},
+    ],
+    tip:null
+  },
+  stark: {
+    causes:[
+      {icon:'⚖️', label:'Zu viel Kaffeepulver', dim:'dose_less'},
+      {icon:'🔧', label:'Mahlgrad zu fein', dim:'grind_coarser'},
+      {icon:'💧', label:'Zu wenig Wasser im Verhältnis', dim:'water_more'},
+    ],
+    tip:null
+  },
+  verbrannt: {
+    causes:[
+      {icon:'🌡️', label:'Brühtemperatur zu hoch', dim:'temp_lower'},
+      {icon:'⏲️', label:'Zu lange warmgehalten', dim:'heat_plate'},
+      {icon:'🫘', label:'Sehr dunkle Röstung', dim:'roast_note'},
+    ],
+    tip:'Sehr dunkel geröstete Kaffees schmecken schneller rauchig – das liegt oft am Kaffee selbst, nicht an deiner Einstellung.'
+  },
+  langweilig: {
+    causes:[
+      {icon:'📅', label:'Kaffee nicht mehr frisch', dim:'freshness'},
+      {icon:'🔧', label:'Mahlgrad zu grob', dim:'grind_finer'},
+      {icon:'⚖️', label:'Rezept zu schwach', dim:'dose_more'},
+    ],
+    tip:'Aromen bauen sich nach dem Mahlen schnell ab – am besten kurz vor der Zubereitung frisch mahlen.'
+  },
+  komisch: {
+    causes:[
+      {icon:'🧽', label:'Maschine braucht Reinigung', dim:'cleaning'},
+      {icon:'🚰', label:'Wasserqualität', dim:'water_quality'},
+      {icon:'🫘', label:'Kaffee alt oder falsch gelagert', dim:'storage'},
+    ],
+    tip:'Kaffee nimmt leicht Fremdgerüche an – am besten luftdicht, dunkel und kühl lagern, nicht im Kühlschrank.'
+  }
+};
+
+const QUICK_HELP = [
+  {emoji:'😖', what:'Sauer', fix:'Mahlgrad feiner'},
+  {emoji:'😵', what:'Bitter', fix:'Mahlgrad gröber'},
+  {emoji:'💧', what:'Wässrig', fix:'mehr Kaffee / feiner mahlen'},
+  {emoji:'🪵', what:'Zu stark', fix:'gröber mahlen / weniger Kaffee'},
+  {emoji:'🔥', what:'Verbrannt', fix:'Temperatur prüfen'},
+  {emoji:'😐', what:'Fad', fix:'frischer mahlen / Rezept prüfen'},
+];
+
+const FINDER_URL = 'https://lenoko.de';
+
+/* ---------- Siebträger: detaillierte Diagnose-Entscheidungsbäume ----------
+   Jeder Baum hat einen Start-Knoten. Ein Knoten ist entweder:
+   - {type:'question', note?, text, options:[{emoji,label,next}]}
+     next kann sein: eine Knoten-ID im selben Baum, 'redirect:<problemId>'
+     (springt in einen anderen Baum) oder 'LEGACY' (fällt zurück auf die
+     einfache Standard-Diagnose weiter unten).
+   - {type:'result', icon, label, note?, actions:[...], tip?:{text, linkHref?, linkLabel?}, next?}
+     next verweist auf den nächsten Tipp, falls "Besteht weiter" geklickt wird;
+     ist next leer, endet der Pfad in der "Ursachen durch"-Schlussansicht.
+------------------------------------------------------------------------- */
+
+const SIEBTRAEGER_TREES = {
+
+  sauer: {
+    start:'q1',
+    nodes:{
+      q1:{type:'question', text:'Wie schnell läuft dein Espresso?', options:[
+        {emoji:'⚡', label:'Sehr schnell – unter ca. 20 Sekunden', next:'under20'},
+        {emoji:'⏱️', label:'Normal – ca. 20–35 Sekunden', next:'q2_roast'},
+        {emoji:'🐌', label:'Langsam – über ca. 35 Sekunden', next:'over35_q'},
+        {emoji:'🤷', label:'Weiß ich nicht', next:'LEGACY'},
+      ]},
+      under20:{type:'result', icon:'🔧', label:'Wahrscheinlich unterextrahiert',
+        note:'Der Kaffee hatte zu wenig Zeit, um genügend Aromastoffe abzugeben.',
+        actions:['Mahlgrad etwas feiner stellen. Nur eine kleine Stufe verändern und danach erneut probieren.'],
+        next:'under20_dose'},
+      under20_dose:{type:'result', icon:'⚖️', label:'Kaffeemenge prüfen',
+        actions:['Ist deutlich weniger Kaffee im Sieb als vorgesehen, kann Wasser zu schnell hindurchlaufen – Sieb wie vorgesehen befüllen.'],
+        next:null},
+      q2_roast:{type:'question', note:'Hier würden wir nicht sofort behaupten, dass etwas falsch eingestellt ist.', text:'Welche Röstung verwendest du?', options:[
+        {emoji:'🌕', label:'Hell', next:'roast_hell'},
+        {emoji:'🟤', label:'Mittel', next:'roast_mitteldunkel'},
+        {emoji:'⚫', label:'Dunkel', next:'roast_mitteldunkel'},
+        {emoji:'🤷', label:'Weiß ich nicht', next:'roast_mitteldunkel'},
+      ]},
+      roast_hell:{type:'result', icon:'🌕', label:'Normale Fruchtigkeit heller Röstungen',
+        note:'Eine leichte Fruchtigkeit und Säure kann bei hellen Kaffees völlig normal und gewünscht sein.',
+        actions:['Wenn die Säure unangenehm ist: Temperatur etwas erhöhen.', 'Oder: Bezug leicht verlängern.'],
+        next:null},
+      roast_mitteldunkel:{type:'result', icon:'🔧', label:'Leicht unterextrahiert',
+        actions:['Mahlgrad minimal feiner stellen.', 'Oder: Brühtemperatur leicht erhöhen.'],
+        next:null},
+      over35_q:{type:'question', note:'Das ist ungewöhnlich – Säure bei so langer Laufzeit lässt sich nicht pauschal mit „noch feiner mahlen“ lösen.', text:'Spritzt dein Espresso beim Bezug oder läuft er ungleichmäßig?', options:[
+        {emoji:'💦', label:'Ja', next:'channeling'},
+        {emoji:'🙅', label:'Nein', next:'over35_no_channel'},
+        {emoji:'🤷', label:'Weiß ich nicht', next:'over35_no_channel'},
+      ]},
+      channeling:{type:'result', icon:'💦', label:'Wahrscheinlich Channeling',
+        note:'Das Wasser sucht sich einen ungleichmäßigen Weg durch das Kaffeemehl.',
+        actions:['Kaffeemehl gleichmäßig verteilen.', 'Sorgfältig und gerade tampen.', 'Klumpen im Mehl vermeiden.'],
+        next:null},
+      over35_no_channel:{type:'result', icon:'🌡️', label:'Temperatur zu niedrig',
+        actions:['Brühtemperatur an der Maschine leicht erhöhen.'],
+        tip:{text:'Bei einer sehr hellen Röstung kann etwas Säure trotz langer Laufzeit normal sein.'},
+        next:null},
+    }
+  },
+
+  bitter: {
+    start:'q1',
+    nodes:{
+      q1:{type:'question', text:'Wie lange läuft dein Espresso?', options:[
+        {emoji:'⚡', label:'Unter 20 Sekunden', next:'under20'},
+        {emoji:'⏱️', label:'20–35 Sekunden', next:'q2_roast'},
+        {emoji:'🐌', label:'Über 35 Sekunden', next:'over35'},
+        {emoji:'🤷', label:'Weiß ich nicht', next:'LEGACY'},
+      ]},
+      over35:{type:'result', icon:'🔧', label:'Wahrscheinlich überextrahiert',
+        actions:['Mahlgrad etwas gröber einstellen. Danach erneut testen.'],
+        next:null},
+      under20:{type:'result', icon:'⚖️', label:'Ungewöhnlich kurz für Bitterkeit',
+        note:'Bitterkeit bei so kurzer Laufzeit liegt seltener am Mahlgrad.',
+        actions:['Kaffeemenge und Verteilung im Sieb prüfen.', 'Mahlgrad trotzdem einen Hauch gröber testen.'],
+        next:null},
+      q2_roast:{type:'question', text:'Welche Röstung verwendest du?', options:[
+        {emoji:'⚫', label:'Sehr dunkel', next:'roast_dunkel'},
+        {emoji:'🟤', label:'Mittel', next:'roast_mittel'},
+        {emoji:'🌕', label:'Hell', next:'roast_hell'},
+        {emoji:'🤷', label:'Weiß ich nicht', next:'roast_mittel'},
+      ]},
+      roast_dunkel:{type:'result', icon:'⚫', label:'Röstbedingte Bitterkeit',
+        note:'Eine dunkle Röstung kann von Natur aus kräftige, bittere und röstige Noten haben.',
+        actions:['Temperatur etwas senken.', 'Kürzeren Bezug testen.'],
+        tip:{text:'Wenn dir das dauerhaft zu bitter ist, passt evtl. eine hellere Röstung besser zu deinem Geschmack.', linkHref:FINDER_URL, linkLabel:'Passende Kaffees entdecken →'},
+        next:null},
+      roast_mittel:{type:'result', icon:'🔧', label:'Leicht überextrahiert',
+        actions:['Mahlgrad minimal gröber stellen.', 'Oder: Brühtemperatur leicht senken.'],
+        next:null},
+      roast_hell:{type:'result', icon:'🔧', label:'Ungewöhnlich für helle Röstung',
+        note:'Bitterkeit ist bei hellen Röstungen selten – meist steckt Überextraktion oder Channeling dahinter.',
+        actions:['Mahlgrad minimal gröber stellen.', 'Auf gleichmäßige Verteilung & Tampen achten.'],
+        next:null},
+    }
+  },
+
+  duenn: {
+    start:'q1',
+    nodes:{
+      q1:{type:'question', text:'Wie sieht dein Espresso aus?', options:[
+        {emoji:'🟤', label:'Sehr hell und schnell gelaufen', next:'hell_schnell'},
+        {emoji:'☕', label:'Normal, aber geschmacklich dünn', next:'q2_size'},
+        {emoji:'🤷', label:'Weiß ich nicht', next:'LEGACY'},
+      ]},
+      hell_schnell:{type:'result', icon:'🔧', label:'Wahrscheinlich unterextrahiert',
+        actions:['Mahlgrad feiner einstellen.'],
+        next:null},
+      q2_size:{type:'question', text:'Wie groß ist dein Getränk?', options:[
+        {emoji:'☕', label:'Espresso (ca. 25–40 g)', next:'espresso_size'},
+        {emoji:'🥤', label:'Großer Kaffee / Lungo', next:'lungo_size'},
+        {emoji:'🤷', label:'Weiß ich nicht', next:'espresso_size'},
+      ]},
+      lungo_size:{type:'result', icon:'💧', label:'Zu viel Wasser im Verhältnis',
+        note:'Vermutlich wird zu viel Wasser durch das Kaffeemehl geleitet.',
+        actions:['Weniger Getränkemenge beziehen.'],
+        next:null},
+      espresso_size:{type:'result', icon:'⚖️', label:'Rezept prüfen',
+        actions:['Etwas mehr Kaffeepulver verwenden.', 'Mahlgrad minimal feiner stellen.'],
+        next:null},
+    }
+  },
+
+  stark: {
+    start:'q1',
+    nodes:{
+      q1:{type:'question', note:'Stark ist nicht automatisch bitter – lass uns das genauer eingrenzen.', text:'Was meinst du mit „zu stark“?', options:[
+        {emoji:'😵', label:'Zu intensiv', next:'intensiv'},
+        {emoji:'😖', label:'Zu bitter', next:'redirect:bitter'},
+        {emoji:'💥', label:'Zu konzentriert', next:'konzentriert'},
+      ]},
+      intensiv:{type:'result', icon:'⚖️', label:'Zu intensiv im Geschmack',
+        actions:['Etwas weniger Kaffee verwenden.', 'Oder eine mildere Bohne wählen.'],
+        next:null},
+      konzentriert:{type:'result', icon:'💥', label:'Zu konzentriert',
+        actions:['Etwas mehr Getränkemenge beziehen.'],
+        next:null},
+    }
+  },
+
+  verbrannt: {
+    start:'q1',
+    nodes:{
+      q1:{type:'question', note:'Das liegt nicht immer an deiner Einstellung.', text:'Ist der Kaffee sehr dunkel geröstet?', options:[
+        {emoji:'⚫', label:'Ja', next:'dunkel'},
+        {emoji:'🙅', label:'Nein', next:'nicht_dunkel'},
+        {emoji:'🤷', label:'Weiß ich nicht', next:'nicht_dunkel'},
+      ]},
+      dunkel:{type:'result', icon:'⚫', label:'Wahrscheinlich röstbedingt',
+        note:'Eine sehr dunkle Röstung kann starke Röstaromen, Rauchigkeit und Bitterkeit entwickeln.',
+        actions:['Temperatur etwas reduzieren.', 'Kürzeren Bezug ausprobieren.'],
+        tip:{text:'Wenn das nicht hilft, passt eventuell eine hellere oder mittlere Röstung besser zu deinem Geschmack.', linkHref:FINDER_URL, linkLabel:'Passende Kaffees entdecken →'},
+        next:null},
+      nicht_dunkel:{type:'result', icon:'🌡️', label:'Zu heiß oder zu lange extrahiert',
+        actions:['Brühtemperatur senken.', 'Kürzeren Bezug testen.'],
+        next:null},
+    }
+  },
+
+  langweilig: {
+    start:'q1',
+    nodes:{
+      q1:{type:'question', text:'Ist dein Kaffee ...', options:[
+        {emoji:'💧', label:'Dünn und wässrig?', next:'redirect:duenn'},
+        {emoji:'😐', label:'Vollmundig, aber wenig interessant?', next:'q2_age'},
+      ]},
+      q2_age:{type:'question', text:'Wie alt sind deine Bohnen ungefähr?', options:[
+        {emoji:'🌱', label:'Unter 2 Wochen', next:'frisch'},
+        {emoji:'📅', label:'2–6 Wochen', next:'frisch'},
+        {emoji:'🍂', label:'Mehrere Monate', next:'alt'},
+        {emoji:'🤷', label:'Weiß ich nicht', next:'frisch'},
+      ]},
+      alt:{type:'result', icon:'📅', label:'Kaffee nicht mehr frisch',
+        note:'Kaffee verliert mit der Zeit Aromakomplexität.',
+        actions:['Frischere Bohnen testen.'],
+        tip:{text:'Am besten kurz vor der Zubereitung frisch mahlen und den Kaffee innerhalb weniger Wochen nach der Röstung verbrauchen.', linkHref:FINDER_URL, linkLabel:'Frisch geröstete Kaffees entdecken →'},
+        next:null},
+      frisch:{type:'result', icon:'🔧', label:'Rezept oder Kaffeeprofil',
+        note:'Deine Bohnen sind noch frisch genug – wahrscheinlich passt eher das Rezept oder das Kaffeeprofil nicht zu deinem Geschmack.',
+        actions:['Mahlgrad minimal feiner stellen.', 'Etwas mehr Kaffeepulver verwenden.'],
+        tip:{text:'Manche Kaffeeprofile sind einfach zurückhaltender im Geschmack – ein anderer Kaffee kann hier mehr bringen.', linkHref:FINDER_URL, linkLabel:'Anderen Kaffee entdecken →'},
+        next:null},
+    }
+  },
+
+  komisch: {
+    start:'q1',
+    nodes:{
+      q1:{type:'question', text:'Wie fühlt sich der Geschmack an?', options:[
+        {emoji:'🍋', label:'Spitz / stechend', next:'redirect:sauer'},
+        {emoji:'🪵', label:'Trocken / pelzig', next:'redirect:bitter'},
+        {emoji:'💧', label:'Leer / wenig Geschmack', next:'redirect:duenn'},
+        {emoji:'🔥', label:'Rauchig / aschig', next:'redirect:verbrannt'},
+        {emoji:'😐', label:'Einfach uninteressant', next:'redirect:langweilig'},
+      ]},
+    }
+  },
+};
+
+/* ---------- State ---------- */
+
+let state = {
+  screen:'problem',   // problem | method | diagnosis | result
+  problemId:null,
+  methodId:null,
+  causeIndex:0,
+  mode:'legacy',       // 'tree' (Siebträger, detaillierte Fragen) | 'legacy' (einfache Kaskade)
+  nodeId:null,
+  history:[],          // [{problemId, nodeId}, ...] für den Zurück-Button im Baum
+  sheetOpen:false
+};
+
+function resetFlow(){
+  state.screen='problem';
+  state.problemId=null;
+  state.methodId=null;
+  state.causeIndex=0;
+  state.mode='legacy';
+  state.nodeId=null;
+  state.history=[];
+  render();
+}
+
+/* ---------- Rendering ---------- */
+
+const app = document.getElementById('app');
+
+function progressDots(step){
+  const dots=[1,2,3].map(n=>`<span class="${n<=step?'active':''}"></span>`).join('');
+  return `<div class="bean-progress">${dots}</div>`;
+}
+
+function header(step){
+  return `
+    <header class="top">
+      <div class="brand">
+        <span class="mark">Barista Coach</span>
+      </div>
+      ${step ? progressDots(step) : ''}
+    </header>
+  `;
+}
+
+function finderFooter(){
+  return `
+    <footer class="finder">
+      <p>☕ Du möchtest deinen Kaffee verbessern, aber bist dir nicht sicher, welcher Kaffee zu dir passt?</p>
+      <a href="${FINDER_URL}" target="_blank" rel="noopener">Kaffee-Finder von LeNoKo →</a>
+    </footer>
+  `;
+}
+
+function renderProblemScreen(){
+  app.innerHTML = `
+    ${header(1)}
+    <div class="screen">
+      <h1 class="headline">Was schmeckt nicht?</h1>
+      <p class="lede">Wähle aus, was am ehesten passt – wir grenzen das Problem gemeinsam ein.</p>
+      <div class="card-grid">
+        ${PROBLEMS.map(p=>`
+          <button class="pick-card ${p.wide?'wide':''}" data-problem="${p.id}">
+            <span class="emoji">${p.emoji}</span>
+            <span class="title">${p.title}</span>
+            <span class="desc">${p.desc}</span>
+          </button>
+        `).join('')}
+      </div>
+      ${finderFooter()}
+    </div>
+    ${fab()}
+  `;
+  app.querySelectorAll('[data-problem]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.problemId = btn.dataset.problem;
+      state.screen='method';
+      render();
+    });
+  });
+  attachFab();
+}
+
+function renderMethodScreen(){
+  const problem = PROBLEMS.find(p=>p.id===state.problemId);
+  app.innerHTML = `
+    ${header(2)}
+    <div class="screen">
+      <button class="back-link" id="backBtn">← Zurück</button>
+      <h1 class="headline">Wie bereitest du ihn zu?</h1>
+      <p class="lede">${problem.emoji} Dein Kaffee ist gerade <strong>${problem.title.toLowerCase()}</strong>. Mit welcher Methode hast du ihn gemacht?</p>
+      <div class="method-grid">
+        ${METHODS.map(m=>`
+          <button class="method-card" data-method="${m.id}">
+            <span class="emoji">${m.emoji}</span>
+            <span class="title">${m.title}</span>
+          </button>
+        `).join('')}
+      </div>
+    </div>
+    ${fab()}
+  `;
+  document.getElementById('backBtn').addEventListener('click', ()=>{
+    state.screen='problem'; render();
+  });
+  app.querySelectorAll('[data-method]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.methodId = btn.dataset.method;
+      state.screen='diagnosis';
+      state.history=[];
+      const tree = state.methodId==='siebtraeger' ? SIEBTRAEGER_TREES[state.problemId] : null;
+      if (tree){
+        state.mode='tree';
+        state.nodeId=tree.start;
+      } else {
+        state.mode='legacy';
+        state.causeIndex=0;
+      }
+      render();
+    });
+  });
+  attachFab();
+}
+
+function renderDiagnosisScreen(){
+  if (state.mode==='tree'){
+    renderTreeDiagnosis();
+    return;
+  }
+  renderLegacyDiagnosis();
+}
+
+function renderLegacyDiagnosis(){
+  const problem = PROBLEMS.find(p=>p.id===state.problemId);
+  const method = METHODS.find(m=>m.id===state.methodId);
+  const set = CAUSES[state.problemId];
+  const idx = state.causeIndex;
+  const finished = idx >= set.causes.length;
+
+  if (finished){
+    renderExhaustedScreen(problem, method, set);
+    return;
+  }
+
+  const cause = set.causes[idx];
+  const actionText = actionFor(cause.dim, state.methodId);
+  const remaining = set.causes.slice(idx+1);
+  const showTip = set.tip && (idx === set.causes.length - 1);
+
+  app.innerHTML = `
+    ${header(3)}
+    <div class="screen">
+      <button class="back-link" id="backBtn">← Andere Methode wählen</button>
+      <span class="diag-context">${problem.emoji} ${problem.title} · ${method.emoji} ${method.title}</span>
+      <h1 class="headline">${problem.emoji} Dein ${method.title}-Kaffee schmeckt ${problem.title.toLowerCase()}</h1>
+      <p class="lede">Das könnte daran liegen:</p>
+
+      <div class="cause-panel">
+        <p class="step-label">Was du zuerst ändern solltest</p>
+        <div class="cause-title"><span class="ic">${cause.icon}</span> ${cause.label}</div>
+        <div class="action-box">
+          <span class="arrow">➡️</span>
+          <p>${actionText}</p>
+        </div>
+        <p class="hint-note">Verändere nur diese eine Einstellung und probiere danach erneut.</p>
+        ${showTip ? `<div class="tip-box"><span>💡</span><p>${set.tip}</p></div>` : ''}
+      </div>
+
+      ${remaining.length ? `
+        <p class="other-causes"><b>Falls das nicht reicht, prüfen wir danach:</b> ${remaining.map(c=>c.label).join(' · ')}</p>
+      ` : ''}
+
+      <div class="decision-row">
+        <button class="btn btn-good" id="helpedBtn">✓ Hat geholfen</button>
+        <button class="btn btn-again" id="stillBtn">→ Besteht weiter</button>
+      </div>
+    </div>
+    ${fab()}
+  `;
+
+  document.getElementById('backBtn').addEventListener('click', ()=>{
+    state.screen='method'; render();
+  });
+  document.getElementById('helpedBtn').addEventListener('click', ()=>{
+    state.screen='result-success'; render();
+  });
+  document.getElementById('stillBtn').addEventListener('click', ()=>{
+    state.causeIndex += 1;
+    render();
+  });
+  attachFab();
+}
+
+/* ---------- Baum-Diagnose (aktuell: Siebträger) ---------- */
+
+function treeBack(){
+  if (state.history.length){
+    const prev = state.history.pop();
+    state.problemId = prev.problemId;
+    state.nodeId = prev.nodeId;
+    render();
+  } else {
+    state.screen='method';
+    render();
+  }
+}
+
+function advanceTree(next){
+  state.history.push({problemId:state.problemId, nodeId:state.nodeId});
+  if (next==='LEGACY'){
+    state.mode='legacy';
+    state.causeIndex=0;
+    render();
+    return;
+  }
+  if (next.indexOf('redirect:')===0){
+    const target = next.split(':')[1];
+    state.problemId = target;
+    state.nodeId = SIEBTRAEGER_TREES[target].start;
+    render();
+    return;
+  }
+  state.nodeId = next;
+  render();
+}
+
+function renderTreeDiagnosis(){
+  const problem = PROBLEMS.find(p=>p.id===state.problemId);
+  const method = METHODS.find(m=>m.id===state.methodId);
+  const tree = SIEBTRAEGER_TREES[state.problemId];
+  const node = tree.nodes[state.nodeId];
+  if (node.type==='question') renderQuestionNode(problem, method, node);
+  else renderResultNode(problem, method, node);
+}
+
+function renderQuestionNode(problem, method, node){
+  app.innerHTML = `
+    ${header(3)}
+    <div class="screen">
+      <button class="back-link" id="backBtn">← Zurück</button>
+      <span class="diag-context">${problem.emoji} ${problem.title} · ${method.emoji} ${method.title}</span>
+      ${state.history.length ? `<p class="step-count">Frage ${state.history.length+1}</p>` : ''}
+      ${node.note ? `<p class="question-note">${node.note}</p>` : ''}
+      <h1 class="headline" style="font-size:21px; margin-bottom:18px;">${node.text}</h1>
+      <div class="option-list">
+        ${node.options.map((o,i)=>`
+          <button class="option-btn" data-idx="${i}">
+            <span class="oe">${o.emoji}</span>
+            <span>${o.label}</span>
+          </button>
+        `).join('')}
+      </div>
+    </div>
+    ${fab()}
+  `;
+  document.getElementById('backBtn').addEventListener('click', treeBack);
+  app.querySelectorAll('[data-idx]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const opt = node.options[Number(btn.dataset.idx)];
+      advanceTree(opt.next);
+    });
+  });
+  attachFab();
+}
+
+function renderResultNode(problem, method, node){
+  app.innerHTML = `
+    ${header(3)}
+    <div class="screen">
+      <button class="back-link" id="backBtn">← Zurück</button>
+      <span class="diag-context">${problem.emoji} ${problem.title} · ${method.emoji} ${method.title}</span>
+      <div class="cause-panel">
+        ${node.note ? `<p class="step-label">${node.note}</p>` : ''}
+        <div class="cause-title"><span class="ic">${node.icon}</span> ${node.label}</div>
+        ${node.actions.map(a=>`
+          <div class="action-box">
+            <span class="arrow">➡️</span>
+            <p>${a}</p>
+          </div>
+        `).join('')}
+        <p class="hint-note">Verändere nur eine Einstellung gleichzeitig und probiere danach erneut.</p>
+        ${node.tip ? `<div class="tip-box"><span>💡</span><p>${node.tip.text}${node.tip.linkHref ? ` <a href="${node.tip.linkHref}" target="_blank" rel="noopener">${node.tip.linkLabel}</a>` : ''}</p></div>` : ''}
+      </div>
+      <div class="decision-row">
+        <button class="btn btn-good" id="helpedBtn">✓ Hat geholfen</button>
+        <button class="btn btn-again" id="stillBtn">→ Besteht weiter</button>
+      </div>
+    </div>
+    ${fab()}
+  `;
+  document.getElementById('backBtn').addEventListener('click', treeBack);
+  document.getElementById('helpedBtn').addEventListener('click', ()=>{
+    state.screen='result-success'; render();
+  });
+  document.getElementById('stillBtn').addEventListener('click', ()=>{
+    if (node.next){
+      state.history.push({problemId:state.problemId, nodeId:state.nodeId});
+      state.nodeId = node.next;
+      render();
+    } else {
+      renderExhaustedScreen(problem, method);
+    }
+  });
+  attachFab();
+}
+
+function renderExhaustedScreen(problem, method, set){
+  app.innerHTML = `
+    ${header(3)}
+    <div class="screen">
+      <button class="back-link" id="backBtn">← Andere Methode wählen</button>
+      <div class="result-panel">
+        <span class="big-emoji">🤔</span>
+        <h2>Wir haben die üblichen Ursachen durch</h2>
+        <p>Keine der Standard-Anpassungen hat gereicht. Manchmal liegt es nicht an der Einstellung, sondern am Kaffee selbst, an der Wassserqualität oder an der Maschine.</p>
+      </div>
+      <div class="decision-row" style="margin-bottom:18px;">
+        <button class="btn btn-again" id="quickBtn" style="flex:1;">🆘 Schnellhilfe ansehen</button>
+      </div>
+      <button class="restart-btn" id="restartBtn">Von vorn beginnen</button>
+      ${finderFooter()}
+    </div>
+    ${fab()}
+  `;
+  document.getElementById('backBtn').addEventListener('click', ()=>{
+    state.screen='method'; render();
+  });
+  document.getElementById('quickBtn').addEventListener('click', openSheet);
+  document.getElementById('restartBtn').addEventListener('click', resetFlow);
+  attachFab();
+}
+
+function renderSuccessScreen(){
+  const problem = PROBLEMS.find(p=>p.id===state.problemId);
+  app.innerHTML = `
+    ${header(3)}
+    <div class="screen">
+      <div class="result-panel">
+        <span class="big-emoji">🎉</span>
+        <h2>Geschafft!</h2>
+        <p>Schön, dass dein Kaffee jetzt schmeckt, wie er soll. Merk dir die Einstellung – dann klappt's beim nächsten Mal direkt.</p>
+      </div>
+      <button class="restart-btn" id="restartBtn">Nächstes Problem lösen</button>
+      ${finderFooter()}
+    </div>
+  `;
+  document.getElementById('restartBtn').addEventListener('click', resetFlow);
+}
+
+function fab(){
+  return `<button class="fab" id="fabBtn">🆘 Schnellhilfe – ohne Fragen</button>`;
+}
+function attachFab(){
+  const el = document.getElementById('fabBtn');
+  if (el) el.addEventListener('click', openSheet);
+}
+
+function openSheet(){
+  state.sheetOpen = true;
+  const backdrop = document.createElement('div');
+  backdrop.className='sheet-backdrop';
+  backdrop.id='sheetBackdrop';
+  backdrop.innerHTML = `
+    <div class="sheet">
+      <div class="sheet-handle"></div>
+      <h2>Mein Kaffee ist ...</h2>
+      <p class="sheet-sub">Erste Hilfe ohne weitere Fragen.</p>
+      ${QUICK_HELP.map(q=>`
+        <div class="quick-row">
+          <span class="qe">${q.emoji}</span>
+          <span class="qwhat">${q.what}</span>
+          <span class="qfix">${q.fix}</span>
+        </div>
+      `).join('')}
+      <button class="sheet-close" id="sheetClose">Schließen</button>
+    </div>
+  `;
+  document.body.appendChild(backdrop);
+  backdrop.addEventListener('click', (e)=>{
+    if (e.target === backdrop) closeSheet();
+  });
+  document.getElementById('sheetClose').addEventListener('click', closeSheet);
+}
+function closeSheet(){
+  const backdrop = document.getElementById('sheetBackdrop');
+  if (backdrop) backdrop.remove();
+  state.sheetOpen = false;
+}
+
+function render(){
+  if (state.screen==='problem') renderProblemScreen();
+  else if (state.screen==='method') renderMethodScreen();
+  else if (state.screen==='diagnosis') renderDiagnosisScreen();
+  else if (state.screen==='result-success') renderSuccessScreen();
+}
+
+render();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>
